@@ -19,6 +19,16 @@
 		BP_COUNT = 7,
 	};
 
+	UENUM(BlueprintType)
+	enum class ECharStats : uint8
+	{
+		Health = 0,
+		Strenght = 1,
+		Dexterity = 2,
+		Intelligence = 3,
+		COUNT = 4,
+	};
+
 	USTRUCT(BlueprintType)
 	struct FSMeshAssetList : public FTableRowBase
 	{
@@ -44,6 +54,16 @@
 	};
 
 	USTRUCT(BlueprintType)
+	struct FSCharStatsSelection
+	{
+		GENERATED_USTRUCT_BODY()
+
+		UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    	TArray<int32> Stats;
+
+	};
+
+	USTRUCT(BlueprintType)
 	struct FSPlayerInfo
 	{
 		GENERATED_USTRUCT_BODY()
@@ -53,6 +73,12 @@
 
 		UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		FSBodyPartSelection BodyParts;
+
+		UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FSCharStatsSelection CharStats;
+
+		UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		int RemainingStatPoints;
 
 		UPROPERTY(BlueprintReadWrite)
 		bool Ready;
@@ -78,16 +104,20 @@ public:
 	void ChangeBodyPart(EBodyPart index, int value, bool DirectSet);
 
 	UFUNCTION(BlueprintCallable)
+	void ChangeCharStat(ECharStats index, int value, bool DirectSet, int& NewValue);
+
+	UFUNCTION(BlueprintCallable)
 	void ChangeGender(bool isFemale);
 
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_PlayerInfoChanged)
-	FSBodyPartSelection PartSelection;
+	FSPlayerInfo PlayerInfo;
 
 	UFUNCTION(Server, Reliable)
 	void SubmitPlayerInfoToServer(FSPlayerInfo Info);
 
 	UFUNCTION()
 	void OnRep_PlayerInfoChanged();
+
 
 private:
 	UPROPERTY()
