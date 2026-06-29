@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "NetBaseCharacter.h" 
 #include "NetGameInstance.generated.h"
 
 /**
@@ -15,9 +16,13 @@ class UNetGameInstance : public UGameInstance
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintCallable)
-	void Host(FString MapName);
 
 	UFUNCTION(BlueprintCallable)
-	void Join (FString Address);
+	void Host(FString MapName, FSPlayerInfo PlayerInfo);
+
+	UFUNCTION(BlueprintCallable)
+	void Join(FString Address, FSPlayerInfo PlayerInfo);
+
+	UPROPERTY(BlueprintReadWrite)
+	FSPlayerInfo PlayerInfo;
 };
