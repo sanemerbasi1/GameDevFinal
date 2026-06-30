@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "NetBaseCharacter.h"
+#include "Weapon.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "NetBaseAvatar.generated.h"
@@ -19,6 +20,12 @@ class ANetBaseAvatar : public ANetBaseCharacter
 public:
 
 	ANetBaseAvatar();
+
+	UPROPERTY(EditAnywhere)
+    TSubclassOf<AWeapon> DefaultWeaponClass;
+
+    UFUNCTION(BlueprintCallable)
+    void EquipWeapon(TSubclassOf<AWeapon> WeaponClass);
 
 	UPROPERTY(EditAnywhere)
 	UCameraComponent* Camera;
@@ -47,6 +54,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetAvatarValues();
 
+	UFUNCTION(BlueprintCallable)
+	void Attack();
+
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -67,6 +77,9 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void ServerSetSprinting(bool bNewSprinting);
+
+	UPROPERTY()
+    AWeapon* EquippedWeapon;
 
 public:
 

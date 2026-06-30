@@ -1,5 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #include "NetBaseAvatar.h"
+#include "Weapon.h"
+#include "NetBaseZombie.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 
@@ -25,6 +27,7 @@ void ANetBaseAvatar::BeginPlay()
     SpringArm->bUsePawnControlRotation = true;
     bUseControllerRotationYaw = false;
     GetCharacterMovement()->bOrientRotationToMovement = true;
+    EquipWeapon(DefaultWeaponClass);
 }
 
 void ANetBaseAvatar::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -138,7 +141,6 @@ void ANetBaseAvatar::Tick(float DeltaTime)
 
     if (!bIsSprinting && CurrentStamina < MaxStamina)
     {
-        UE_LOG(LogTemp, Warning, TEXT("DEBUG"))
         CurrentStamina += StaminaGainRate * DeltaTime;
 
         if (CurrentStamina > MaxStamina)
@@ -146,4 +148,48 @@ void ANetBaseAvatar::Tick(float DeltaTime)
             CurrentStamina = MaxStamina;
         }
     }
+}
+
+void ANetBaseAvatar::EquipWeapon(TSubclassOf<AWeapon> WeaponClass)
+{
+    if (!WeaponClass) return; 
+
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.Owner = this;
+    SpawnParams.Instigator = this;
+        
+    EquippedWeapon = GetWorld()->SpawnActor<AWeapon>(WeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);    
+    
+    if (EquippedWeapon)
+    {
+        EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("hand_rSocket"));
+    }
+}
+
+void ANetBaseAvatar::Attack()
+{
+    if (!EquippedWeapon) return;
+
+    FHitResult HitResult;
+    FVector Start = EquippedWeapon->GetActorLocation(); 
+    FVector End = Start + (EquippedWeapon->GetActorForwardVector() * 100.0f);
+    FCollisionShape Capsule = FCollisionShape::MakeCapsule(10.0f, 50.0f); 
+
+    FCollisionQueryParams QueryParams;
+    QueryParams.AddIgnoredActor(GetOwner());
+
+    bool bHit = GetWorld()->SweepSingleByChannel(
+        HitResult, Start, End, FQuat::Identity, 
+        ECC_GameTraceChannel1, Capsule, QueryParams
+    );
+    
+
+if (bHit && HitResult.GetActor())
+{
+    ANetBaseZombie* HitEnemy = Cast<ANetBaseZombie>(HitResult.GetActor());
+    if (HitEnemy)
+    {
+        HitEnemy->TakingDamage(20.0f); 
+    }
+}
 }
