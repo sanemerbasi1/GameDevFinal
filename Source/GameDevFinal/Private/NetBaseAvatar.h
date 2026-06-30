@@ -27,16 +27,22 @@ public:
 	USpringArmComponent* SpringArm;
 
 	UPROPERTY(BlueprintReadOnly) 
-	int MaxHealth;
+	float MaxHealth;
 
 	UPROPERTY(BlueprintReadOnly)
-	int CurrentHealth;
+	float CurrentHealth;
 
 	UPROPERTY(BlueprintReadOnly)
-	int MaxStamina;
+	float MaxStamina;
 
 	UPROPERTY(BlueprintReadOnly)
-	int CurrentStamina;
+	float CurrentStamina;
+
+	UPROPERTY(BlueprintReadOnly)
+	float StaminaDrainRate;
+
+	UPROPERTY(BlueprintReadOnly)
+    float StaminaGainRate;
 
 	UFUNCTION(BlueprintCallable)
 	void SetAvatarValues();
@@ -61,4 +67,8 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void ServerSetSprinting(bool bNewSprinting);
+
+public:
+
+virtual void Tick(float DeltaTime) override;
 };

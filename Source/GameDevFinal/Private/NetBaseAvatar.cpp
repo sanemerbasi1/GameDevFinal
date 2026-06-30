@@ -13,8 +13,8 @@ ANetBaseAvatar::ANetBaseAvatar()
 
     bIsSprinting = false;
 
-    CurrentHealth = 100;
-    MaxHealth = CurrentHealth;
+    StaminaDrainRate = 20;
+    StaminaGainRate = 10;
 }
 
 void ANetBaseAvatar::BeginPlay()
@@ -65,12 +65,17 @@ void ANetBaseAvatar::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 }
 void ANetBaseAvatar::StartSprint()
 {
-    ServerSetSprinting(true);
+    if (CurrentStamina > 0)
+    {
+        ServerSetSprinting(true);
+        bIsSprinting = true;
+    }
 }
 
 void ANetBaseAvatar::StopSprint()
 {
     ServerSetSprinting(false);
+    bIsSprinting = false;
 }
 
 void ANetBaseAvatar::ServerSetSprinting_Implementation(bool bNewSprinting)
@@ -114,4 +119,31 @@ void ANetBaseAvatar::SetAvatarValues()
 
     CurrentHealth = MaxHealth;
     CurrentStamina = MaxStamina;
+}
+
+void ANetBaseAvatar::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+    if (bIsSprinting && CurrentStamina > 0)
+    {
+        CurrentStamina -= StaminaDrainRate * DeltaTime;
+
+        if (CurrentStamina <= 0)
+        {
+            CurrentStamina = 0;
+            StopSprint();
+        }
+    }
+
+    if (!bIsSprinting && CurrentStamina < MaxStamina)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("DEBUG"))
+        CurrentStamina += StaminaGainRate * DeltaTime;
+
+        if (CurrentStamina > MaxStamina)
+        {
+            CurrentStamina = MaxStamina;
+        }
+    }
 }
