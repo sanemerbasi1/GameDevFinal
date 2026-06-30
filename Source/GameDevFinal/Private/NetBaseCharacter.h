@@ -59,7 +59,7 @@
 		GENERATED_USTRUCT_BODY()
 
 		UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    	TArray<int32> Stats;
+    	TArray<int> Stats;
 
 	};
 

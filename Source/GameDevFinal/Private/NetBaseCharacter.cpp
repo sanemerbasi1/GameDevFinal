@@ -1,5 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #include "NetGameInstance.h"
+#include "NetBaseAvatar.h"
 #include "NetBaseCharacter.h"
 
 
@@ -68,7 +69,11 @@ void ANetBaseCharacter::BeginPlay()
 
 void ANetBaseCharacter::OnRep_PlayerInfoChanged()
 {
-	UpdateBodyParts();
+	if (ANetBaseAvatar* MyAvatar = Cast<ANetBaseAvatar>(this))
+    {
+		UpdateBodyParts();
+        MyAvatar->SetAvatarValues();
+    }
 }
 
 void ANetBaseCharacter::SubmitPlayerInfoToServer_Implementation(FSPlayerInfo Info)
@@ -165,9 +170,8 @@ void ANetBaseCharacter::OnConstruction(const FTransform& Transform)
 
 void ANetBaseCharacter::ChangeCharStat(ECharStats index, int32 value, bool DirectSet, int32& NewValue)
 {
-    int32 StatIndex = (int32)index;
+    int StatIndex = (int)index;
 
-    // 1. FIRST check if the index is safe!
     if (PlayerInfo.CharStats.Stats.IsValidIndex(StatIndex))
     {
         if (DirectSet)

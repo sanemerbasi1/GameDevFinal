@@ -26,6 +26,21 @@ public:
 	UPROPERTY(EditAnywhere)
 	USpringArmComponent* SpringArm;
 
+	UPROPERTY(BlueprintReadOnly) 
+	int MaxHealth;
+
+	UPROPERTY(BlueprintReadOnly)
+	int CurrentHealth;
+
+	UPROPERTY(BlueprintReadOnly)
+	int MaxStamina;
+
+	UPROPERTY(BlueprintReadOnly)
+	int CurrentStamina;
+
+	UFUNCTION(BlueprintCallable)
+	void SetAvatarValues();
+
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

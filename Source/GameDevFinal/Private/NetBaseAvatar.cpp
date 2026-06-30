@@ -12,6 +12,9 @@ ANetBaseAvatar::ANetBaseAvatar()
     Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 
     bIsSprinting = false;
+
+    CurrentHealth = 100;
+    MaxHealth = CurrentHealth;
 }
 
 void ANetBaseAvatar::BeginPlay()
@@ -79,4 +82,36 @@ void ANetBaseAvatar::ServerSetSprinting_Implementation(bool bNewSprinting)
 void ANetBaseAvatar::OnRep_IsSprinting()
 {
     GetCharacterMovement()->MaxWalkSpeed = bIsSprinting ? 1000.0f : 500.0f;
+}
+
+
+//strenght damage arttırıcak, intelligence de magic range arttırıcak.
+
+void ANetBaseAvatar::SetAvatarValues()
+{
+    int HealthIndex = (int)ECharStats::Health;
+    int DexterityIndex = (int)ECharStats::Dexterity;
+    int IntelligenceIndex = (int)ECharStats::Intelligence;
+    int StrenghtIndex = (int)ECharStats::Strenght;
+
+    if (PlayerInfo.CharStats.Stats.IsValidIndex(HealthIndex))
+    {
+        MaxHealth = 100 * PlayerInfo.CharStats.Stats[HealthIndex];
+    }
+    else
+    {
+        MaxHealth = 100; 
+    }
+
+    if (PlayerInfo.CharStats.Stats.IsValidIndex(DexterityIndex))
+    {
+        MaxStamina = 100 * PlayerInfo.CharStats.Stats[DexterityIndex];
+    }
+    else 
+    {
+        MaxStamina = 100;
+    }
+
+    CurrentHealth = MaxHealth;
+    CurrentStamina = MaxStamina;
 }
