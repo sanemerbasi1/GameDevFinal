@@ -118,6 +118,18 @@ public:
 	UFUNCTION()
 	void OnRep_PlayerInfoChanged();
 
+	UFUNCTION(BlueprintCallable)
+	virtual void Attack();
+
+	UFUNCTION(BlueprintCallable)
+	virtual void TakingDamage(float Damage);
+
+	UPROPERTY(BlueprintReadOnly)
+	float CurrentHealth;
+
+	UPROPERTY(BlueprintReadOnly) 
+	float MaxHealth;
+
 
 private:
 	UPROPERTY()
@@ -143,5 +155,7 @@ private:
 
 	static FSMeshAssetList* GetBodyPartList(EBodyPart part, bool isFemale);
 
-	void UpdateBodyParts();
+
+protected:
+virtual void UpdateBodyParts();
 };

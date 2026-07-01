@@ -169,49 +169,72 @@ void ANetBaseAvatar::EquipWeapon(TSubclassOf<AWeapon> WeaponClass)
 
 void ANetBaseAvatar::Attack()
 {
-    if (!EquippedWeapon) return;
+    ServerAttack();
+}
+
+void ANetBaseAvatar::ServerAttack_Implementation()
+{
+     if (CurrentStamina >= 20)
+    {
+        if (!EquippedWeapon) return;
 
     FHitResult HitResult;
-    FVector Start = EquippedWeapon->GetActorLocation(); 
+    FVector Start = EquippedWeapon->GetActorLocation();
     FVector End = Start + (GetActorForwardVector() * 200.0f);
-    FCollisionShape Capsule = FCollisionShape::MakeCapsule(20.0f, 100.0f); 
+    FCollisionShape Capsule = FCollisionShape::MakeCapsule(20.0f, 60.0f); 
 
     FCollisionQueryParams QueryParams;
-    QueryParams.AddIgnoredActor(GetOwner());
+    QueryParams.AddIgnoredActor(this);
 
     bool bHit = GetWorld()->SweepSingleByChannel(
         HitResult, Start, End, FQuat::Identity, 
-        ECC_GameTraceChannel1, Capsule, QueryParams
+        ECC_WorldDynamic, Capsule, QueryParams
     );
 
-    // --- DRAW DEBUG SHAPE START ---
-    // Calculate the center point of the sweep line to position the debug capsule
     FVector CenterPoint = (Start + End) * 0.5f;
     
-    // Choose color: Red if it hit something, Green if it missed
-    FColor DebugColor = bHit ? FColor::Red : FColor::Green;
+    FColor DebugColor = bHit ? FColor::Green : FColor::Red;
 
-    // Calculate rotation so the capsule aligns with the direction of the swing
     FQuat CapsuleRotation = FRotationMatrix::MakeFromZ(End - Start).ToQuat();
 
     DrawDebugCapsule(
         GetWorld(),
         CenterPoint,
-        100.0f,          // Half-Height (Must match your FCollisionShape)
-        20.0f,          // Radius (Must match your FCollisionShape)
+        60.0f,         
+        20.0f,          
         CapsuleRotation,
         DebugColor,
-        false,          // bPersistentLines (false means it disappears)
-        2.0f            // Duration in seconds the shape stays on screen
+        false,         
+        2.0f            
     );
-    // --- DRAW DEBUG SHAPE END ---
 
 if (bHit && HitResult.GetActor())
 {
     ANetBaseZombie* HitEnemy = Cast<ANetBaseZombie>(HitResult.GetActor());
     if (HitEnemy)
     {
-        HitEnemy->TakingDamage(20.0f); 
+        HitEnemy->TakingDamage(20 * PlayerInfo.CharStats.Stats[(int)ECharStats::Strenght]); 
     }
 }
+
+        CurrentStamina -= 20;
+    }
+    else
+    {
+        return;
+    }
+}
+
+void ANetBaseAvatar::TakingDamage(float Damage)
+{
+    if (!HasAuthority()) return;
+
+    CurrentHealth -= Damage;
+
+    if (CurrentHealth <= 0)
+    {
+        CurrentHealth = 0;
+        OnDeath();
+    }
+    OnHealthChanged(CurrentHealth);
 }

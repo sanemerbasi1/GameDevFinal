@@ -33,11 +33,11 @@ public:
 	UPROPERTY(EditAnywhere)
 	USpringArmComponent* SpringArm;
 
-	UPROPERTY(BlueprintReadOnly) 
-	float MaxHealth;
+	//UPROPERTY(BlueprintReadOnly) 
+	//float MaxHealth;
 
-	UPROPERTY(BlueprintReadOnly)
-	float CurrentHealth;
+	//UPROPERTY(BlueprintReadOnly)
+	//float CurrentHealth;
 
 	UPROPERTY(BlueprintReadOnly)
 	float MaxStamina;
@@ -54,8 +54,20 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetAvatarValues();
 
-	UFUNCTION(BlueprintCallable)
-	void Attack();
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnHealthChanged(float NewHealth);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnDeath();
+
+	//UFUNCTION(BlueprintCallable)
+	//void Attack();
+
+	UFUNCTION(Server, Reliable)
+	void ServerAttack();
+
+	virtual void Attack() override;
+	virtual void TakingDamage(float Damage) override;
 
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;

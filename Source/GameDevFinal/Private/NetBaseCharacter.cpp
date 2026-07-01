@@ -203,3 +203,13 @@ void ANetBaseCharacter::ChangeCharStat(ECharStats index, int value, bool DirectS
         NewValue = PlayerInfo.CharStats.Stats[StatIndex];
     }
 }
+
+void ANetBaseCharacter::Attack()
+{
+
+}
+
+void ANetBaseCharacter::TakingDamage(float Damage)
+{
+	
+}

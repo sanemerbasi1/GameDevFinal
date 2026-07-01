@@ -6,6 +6,8 @@
 #include "NetBaseCharacter.h"
 #include "NetBaseZombie.generated.h"
 
+class UWidgetComponent;
+
 /**
  * 
  */
@@ -18,7 +20,23 @@ public:
 
 ANetBaseZombie();
 
+UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+class UWidgetComponent* HealthBarWidget;
+
+UFUNCTION(BlueprintImplementableEvent)
+void OnHealthChanged(float NewHealth);
+
 UFUNCTION(BlueprintCallable)
-void TakingDamage(float Damage);
+void FollowPlayer(ANetBaseCharacter* Player);
+
+
+UPROPERTY(BlueprintReadOnly)
+float AttackDamage = 30;
+
+virtual void Attack() override;
+virtual void TakingDamage(float Damage) override;
+
+protected:
+virtual void UpdateBodyParts() override;
 	
 };
