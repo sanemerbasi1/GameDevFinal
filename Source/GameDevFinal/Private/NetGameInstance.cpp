@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
-#include "Kismet/GameplayStatics.h"
 #include "NetGameInstance.h"
+#include "Kismet/GameplayStatics.h"
+
 
 void UNetGameInstance::Host(FString MapName, const FSPlayerInfo Info)
 {

@@ -3,7 +3,12 @@
 
 #include "NetBaseZombie.h"
 
+ANetBaseZombie::ANetBaseZombie()
+{
+
+}
+
 void ANetBaseZombie::TakingDamage(float Damage)
 {
-    
+
 }

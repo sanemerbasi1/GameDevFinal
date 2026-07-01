@@ -2,6 +2,7 @@
 #include "NetBaseAvatar.h"
 #include "Weapon.h"
 #include "NetBaseZombie.h"
+#include "DrawDebugHelpers.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 
@@ -172,8 +173,8 @@ void ANetBaseAvatar::Attack()
 
     FHitResult HitResult;
     FVector Start = EquippedWeapon->GetActorLocation(); 
-    FVector End = Start + (EquippedWeapon->GetActorForwardVector() * 100.0f);
-    FCollisionShape Capsule = FCollisionShape::MakeCapsule(10.0f, 50.0f); 
+    FVector End = Start + (GetActorForwardVector() * 200.0f);
+    FCollisionShape Capsule = FCollisionShape::MakeCapsule(20.0f, 100.0f); 
 
     FCollisionQueryParams QueryParams;
     QueryParams.AddIgnoredActor(GetOwner());
@@ -182,7 +183,28 @@ void ANetBaseAvatar::Attack()
         HitResult, Start, End, FQuat::Identity, 
         ECC_GameTraceChannel1, Capsule, QueryParams
     );
+
+    // --- DRAW DEBUG SHAPE START ---
+    // Calculate the center point of the sweep line to position the debug capsule
+    FVector CenterPoint = (Start + End) * 0.5f;
     
+    // Choose color: Red if it hit something, Green if it missed
+    FColor DebugColor = bHit ? FColor::Red : FColor::Green;
+
+    // Calculate rotation so the capsule aligns with the direction of the swing
+    FQuat CapsuleRotation = FRotationMatrix::MakeFromZ(End - Start).ToQuat();
+
+    DrawDebugCapsule(
+        GetWorld(),
+        CenterPoint,
+        100.0f,          // Half-Height (Must match your FCollisionShape)
+        20.0f,          // Radius (Must match your FCollisionShape)
+        CapsuleRotation,
+        DebugColor,
+        false,          // bPersistentLines (false means it disappears)
+        2.0f            // Duration in seconds the shape stays on screen
+    );
+    // --- DRAW DEBUG SHAPE END ---
 
 if (bHit && HitResult.GetActor())
 {

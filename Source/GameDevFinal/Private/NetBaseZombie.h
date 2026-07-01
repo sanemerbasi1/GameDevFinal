@@ -16,6 +16,8 @@ class ANetBaseZombie : public ANetBaseCharacter
 
 public:
 
+ANetBaseZombie();
+
 UFUNCTION(BlueprintCallable)
 void TakingDamage(float Damage);
 	

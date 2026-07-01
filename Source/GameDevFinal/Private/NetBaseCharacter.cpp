@@ -1,7 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
+#include "NetBaseCharacter.h"
 #include "NetGameInstance.h"
 #include "NetBaseAvatar.h"
-#include "NetBaseCharacter.h"
+
 
 
 static UDataTable* SBodyParts = nullptr;
@@ -51,7 +52,7 @@ ANetBaseCharacter::ANetBaseCharacter()
 	static ConstructorHelpers::FObjectFinder<UDataTable> DT_BodyParts(TEXT("DataTable'/Game/Blueprints/DT_BodyParts.DT_BodyParts'"));
 	SBodyParts = DT_BodyParts.Object;
 	
-	PlayerInfo.CharStats.Stats.Init(1, (int32)ECharStats::COUNT);
+	PlayerInfo.CharStats.Stats.Init(1, (int)ECharStats::COUNT);
 }
 
 void ANetBaseCharacter::BeginPlay()
@@ -168,7 +169,7 @@ void ANetBaseCharacter::OnConstruction(const FTransform& Transform)
 	UpdateBodyParts();
 }
 
-void ANetBaseCharacter::ChangeCharStat(ECharStats index, int32 value, bool DirectSet, int32& NewValue)
+void ANetBaseCharacter::ChangeCharStat(ECharStats index, int value, bool DirectSet, int& NewValue)
 {
     int StatIndex = (int)index;
 
