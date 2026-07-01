@@ -24,15 +24,15 @@ ANetBaseCharacter::ANetBaseCharacter()
 
 	PartFace = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Face"));
 	PartFace->SetupAttachment(GetMesh());
-	PartFace->SetLeaderPoseComponent(GetMesh());
+	//PartFace->SetLeaderPoseComponent(GetMesh());
 
 	PartHands = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Hands"));
 	PartHands->SetupAttachment(GetMesh());
-	PartHands->SetLeaderPoseComponent(GetMesh());
+	//PartHands->SetLeaderPoseComponent(GetMesh());
 
 	PartLegs = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Legs"));
 	PartLegs->SetupAttachment(GetMesh());
-	PartLegs->SetLeaderPoseComponent(GetMesh());
+	//PartLegs->SetLeaderPoseComponent(GetMesh());
 
 	PartHair = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Hair"));
 	PartHair->SetupAttachment(PartFace,FName("headSocket"));

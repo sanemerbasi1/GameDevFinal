@@ -33,6 +33,7 @@ void ANetBaseZombie::TakingDamage(float Damage)
     CurrentHealth -= Damage;
     if (CurrentHealth <= 0.0f)
     {
+        OnDeath();
         Destroy();
     }
     OnHealthChanged(CurrentHealth);

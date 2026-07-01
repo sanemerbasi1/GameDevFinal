@@ -14,4 +14,8 @@ class ANetGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+	public:
+
+UFUNCTION(BlueprintCallable)
+ANetBaseZombie* SpawnEnemy(TSubclassOf<class ANetBaseZombie> ZombieClass, const FVector& Location, const FRotator& Rotation);
 };

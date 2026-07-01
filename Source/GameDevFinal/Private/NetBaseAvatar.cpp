@@ -238,3 +238,4 @@ void ANetBaseAvatar::TakingDamage(float Damage)
     }
     OnHealthChanged(CurrentHealth);
 }
+

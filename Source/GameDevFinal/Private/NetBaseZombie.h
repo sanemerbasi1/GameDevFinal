@@ -29,6 +29,8 @@ void OnHealthChanged(float NewHealth);
 UFUNCTION(BlueprintCallable)
 void FollowPlayer(ANetBaseCharacter* Player);
 
+UFUNCTION(BlueprintImplementableEvent)
+void OnDeath();
 
 UPROPERTY(BlueprintReadOnly)
 float AttackDamage = 30;

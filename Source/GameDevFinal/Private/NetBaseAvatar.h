@@ -60,9 +60,6 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnDeath();
 
-	//UFUNCTION(BlueprintCallable)
-	//void Attack();
-
 	UFUNCTION(Server, Reliable)
 	void ServerAttack();
 
