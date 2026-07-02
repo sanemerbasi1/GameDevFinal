@@ -19,6 +19,16 @@
 		BP_COUNT = 7,
 	};
 
+	UENUM(BlueprintType)
+	enum class ECharStats : uint8
+	{
+		Health = 0,
+		Strenght = 1,
+		Dexterity = 2,
+		Speed = 3,
+		COUNT = 4,
+	};
+
 	USTRUCT(BlueprintType)
 	struct FSMeshAssetList : public FTableRowBase
 	{
@@ -44,6 +54,16 @@
 	};
 
 	USTRUCT(BlueprintType)
+	struct FSCharStatsSelection
+	{
+		GENERATED_USTRUCT_BODY()
+
+		UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    	TArray<int> Stats;
+
+	};
+
+	USTRUCT(BlueprintType)
 	struct FSPlayerInfo
 	{
 		GENERATED_USTRUCT_BODY()
@@ -54,8 +74,14 @@
 		UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		FSBodyPartSelection BodyParts;
 
+		UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FSCharStatsSelection CharStats;
+
+		UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		int RemainingStatPoints = 5;
+
 		UPROPERTY(BlueprintReadWrite)
-		bool Ready;
+		bool Ready = false;
 	};
 
 UCLASS()
@@ -78,10 +104,13 @@ public:
 	void ChangeBodyPart(EBodyPart index, int value, bool DirectSet);
 
 	UFUNCTION(BlueprintCallable)
+	void ChangeCharStat(ECharStats index, int value, bool DirectSet, int& NewValue);
+
+	UFUNCTION(BlueprintCallable)
 	void ChangeGender(bool isFemale);
 
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_PlayerInfoChanged)
-	FSBodyPartSelection PartSelection;
+	FSPlayerInfo PlayerInfo;
 
 	UFUNCTION(Server, Reliable)
 	void SubmitPlayerInfoToServer(FSPlayerInfo Info);
@@ -89,29 +118,44 @@ public:
 	UFUNCTION()
 	void OnRep_PlayerInfoChanged();
 
+	UFUNCTION(BlueprintCallable)
+	virtual void Attack();
+
+	UFUNCTION(BlueprintCallable)
+	virtual void TakingDamage(float Damage);
+
+	UPROPERTY(BlueprintReadOnly)
+	float CurrentHealth;
+
+	UPROPERTY(BlueprintReadOnly) 
+	float MaxHealth;
+
+
 private:
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	USkeletalMeshComponent* PartFace;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* PartHair;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* PartBeard;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* PartEyes;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	USkeletalMeshComponent* PartHands;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	USkeletalMeshComponent* PartLegs;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* PartEyebrows;
 
 	static FSMeshAssetList* GetBodyPartList(EBodyPart part, bool isFemale);
 
-	void UpdateBodyParts();
+
+protected:
+virtual void UpdateBodyParts();
 };

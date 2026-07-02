@@ -23,6 +23,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void Join(FString Address, FSPlayerInfo PlayerInfo);
 
+	UFUNCTION(BlueprintCallable)
+	void LeaveGame(FString LeaveMapName);
+
 	UPROPERTY(BlueprintReadWrite)
 	FSPlayerInfo PlayerInfo;
 };

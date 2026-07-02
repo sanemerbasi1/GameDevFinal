@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "NetBaseCharacter.h"
+#include "Weapon.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "NetBaseAvatar.generated.h"
@@ -21,10 +22,50 @@ public:
 	ANetBaseAvatar();
 
 	UPROPERTY(EditAnywhere)
+    TSubclassOf<AWeapon> DefaultWeaponClass;
+
+    UFUNCTION(BlueprintCallable)
+    void EquipWeapon(TSubclassOf<AWeapon> WeaponClass);
+
+	UPROPERTY(EditAnywhere)
 	UCameraComponent* Camera;
 
 	UPROPERTY(EditAnywhere)
 	USpringArmComponent* SpringArm;
+
+	UPROPERTY(BlueprintReadOnly)
+	float MaxStamina;
+
+	UPROPERTY(BlueprintReadOnly)
+	float CurrentStamina;
+
+	UPROPERTY(BlueprintReadOnly)
+	float StaminaDrainRate;
+
+	UPROPERTY(BlueprintReadOnly)
+    float StaminaGainRate;
+
+	UFUNCTION(BlueprintCallable)
+	void SetAvatarValues();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnHealthChanged(float NewHealth);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnDeath();
+
+	UFUNCTION(Server, Reliable)
+	void ServerAttack();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastPlayAttackVisuals(UAnimMontage* MontageToPlay);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    UAnimMontage* AttackMontage;
+
+
+	virtual void Attack() override;
+	virtual void TakingDamage(float Damage) override;
 
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
@@ -46,4 +87,24 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void ServerSetSprinting(bool bNewSprinting);
+
+	UPROPERTY(ReplicatedUsing=OnRep_EquippedWeapon)
+    AWeapon* EquippedWeapon;
+
+	UFUNCTION()
+    void OnRep_EquippedWeapon();
+
+	UPROPERTY(EditAnywhere)
+    TSubclassOf<AWeapon> SecondaryWeaponClass;
+
+    bool bUsingMainWeapon;
+
+    void SwapWeaponInput();
+
+    UFUNCTION(Server, Reliable)
+    void ServerSwapWeapon();
+
+public:
+
+virtual void Tick(float DeltaTime) override;
 };

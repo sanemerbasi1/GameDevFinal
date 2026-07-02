@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #include "NetBaseCharacter.h"
 #include "NetGameInstance.h"
+#include "NetBaseAvatar.h"
+
 
 
 static UDataTable* SBodyParts = nullptr;
@@ -22,15 +24,12 @@ ANetBaseCharacter::ANetBaseCharacter()
 
 	PartFace = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Face"));
 	PartFace->SetupAttachment(GetMesh());
-	PartFace->SetLeaderPoseComponent(GetMesh());
 
 	PartHands = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Hands"));
 	PartHands->SetupAttachment(GetMesh());
-	PartHands->SetLeaderPoseComponent(GetMesh());
 
 	PartLegs = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Legs"));
 	PartLegs->SetupAttachment(GetMesh());
-	PartLegs->SetLeaderPoseComponent(GetMesh());
 
 	PartHair = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Hair"));
 	PartHair->SetupAttachment(PartFace,FName("headSocket"));
@@ -49,6 +48,8 @@ ANetBaseCharacter::ANetBaseCharacter()
 
 	static ConstructorHelpers::FObjectFinder<UDataTable> DT_BodyParts(TEXT("DataTable'/Game/Blueprints/DT_BodyParts.DT_BodyParts'"));
 	SBodyParts = DT_BodyParts.Object;
+	
+	PlayerInfo.CharStats.Stats.Init(1, (int)ECharStats::COUNT);
 }
 
 void ANetBaseCharacter::BeginPlay()
@@ -66,12 +67,16 @@ void ANetBaseCharacter::BeginPlay()
 
 void ANetBaseCharacter::OnRep_PlayerInfoChanged()
 {
-	UpdateBodyParts();
+	if (ANetBaseAvatar* MyAvatar = Cast<ANetBaseAvatar>(this))
+    {
+		UpdateBodyParts();
+        MyAvatar->SetAvatarValues();
+    }
 }
 
 void ANetBaseCharacter::SubmitPlayerInfoToServer_Implementation(FSPlayerInfo Info)
 {
-	PartSelection = Info.BodyParts;
+	PlayerInfo = Info;
 
 	if (HasAuthority())
 	{
@@ -82,7 +87,7 @@ void ANetBaseCharacter::SubmitPlayerInfoToServer_Implementation(FSPlayerInfo Inf
 void ANetBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(ANetBaseCharacter, PartSelection);
+	DOREPLIFETIME(ANetBaseCharacter, PlayerInfo);
 }
 
 void ANetBaseCharacter::Tick(float DeltaTime)
@@ -92,10 +97,10 @@ void ANetBaseCharacter::Tick(float DeltaTime)
 
 void ANetBaseCharacter::ChangeBodyPart(EBodyPart index, int value, bool DirectSet)
 {
-	FSMeshAssetList* List = GetBodyPartList(index, PartSelection.isFemale);
+	FSMeshAssetList* List = GetBodyPartList(index, PlayerInfo.BodyParts.isFemale);
 	if (List == nullptr) return;
 
-	int CurrentIndex = PartSelection.Indices[(int)index];
+	int CurrentIndex = PlayerInfo.BodyParts.Indices[(int)index];
 
 	if (DirectSet) {
 		CurrentIndex = value;
@@ -111,7 +116,7 @@ void ANetBaseCharacter::ChangeBodyPart(EBodyPart index, int value, bool DirectSe
 	else
 		CurrentIndex %= Num;
 
-	PartSelection.Indices[(int)index] = CurrentIndex;
+	PlayerInfo.BodyParts.Indices[(int)index] = CurrentIndex;
 
 	switch (index)
 	{
@@ -127,7 +132,7 @@ void ANetBaseCharacter::ChangeBodyPart(EBodyPart index, int value, bool DirectSe
 
 void ANetBaseCharacter::ChangeGender(bool _isFemale)
 {
-	PartSelection.isFemale = _isFemale;
+	PlayerInfo.BodyParts.isFemale = _isFemale;
 	UpdateBodyParts();
 }
 
@@ -140,7 +145,7 @@ void ANetBaseCharacter::UpdateBodyParts()
 	ChangeBodyPart(EBodyPart::BP_Legs, 0, false);
 	ChangeBodyPart(EBodyPart::BP_Eyebrows, 0, false);
 
-	if (PartSelection.isFemale)
+	if (PlayerInfo.BodyParts.isFemale)
 	{
 		PartBeard->SetStaticMesh(nullptr);
 	}
@@ -159,4 +164,49 @@ FSMeshAssetList* ANetBaseCharacter::GetBodyPartList(EBodyPart part,bool isFemale
 void ANetBaseCharacter::OnConstruction(const FTransform& Transform)
 {
 	UpdateBodyParts();
+}
+
+void ANetBaseCharacter::ChangeCharStat(ECharStats index, int value, bool DirectSet, int& NewValue)
+{
+    int StatIndex = (int)index;
+
+    if (PlayerInfo.CharStats.Stats.IsValidIndex(StatIndex))
+    {
+        if (DirectSet)
+        {
+            PlayerInfo.CharStats.Stats[StatIndex] = value;
+        }
+        else 
+        {
+
+            if (value > 0 && PlayerInfo.RemainingStatPoints >= value)
+            {
+                PlayerInfo.CharStats.Stats[StatIndex] += value; 
+                PlayerInfo.RemainingStatPoints -= value; 
+            }
+
+            else if (value < 0 && PlayerInfo.CharStats.Stats[StatIndex] > 1)
+            {
+                PlayerInfo.CharStats.Stats[StatIndex] += value; 
+                PlayerInfo.RemainingStatPoints -= value; 
+            }
+        }
+
+        if (PlayerInfo.CharStats.Stats[StatIndex] < 1)
+        {
+            PlayerInfo.CharStats.Stats[StatIndex] = 1;
+        }
+
+        NewValue = PlayerInfo.CharStats.Stats[StatIndex];
+    }
+}
+
+void ANetBaseCharacter::Attack()
+{
+
+}
+
+void ANetBaseCharacter::TakingDamage(float Damage)
+{
+	
 }
