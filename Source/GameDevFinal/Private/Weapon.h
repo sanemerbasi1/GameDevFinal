@@ -26,4 +26,11 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UStaticMeshComponent* WeaponMesh;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	USkeletalMeshComponent* WeaponSkeletalMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    UAnimMontage* AttackMontage;
+
+	virtual void Attack(AActor* Attacker, FVector ForwardVector, float StrengthStat);
 };

@@ -115,9 +115,6 @@ public:
 	UFUNCTION(Server, Reliable)
 	void SubmitPlayerInfoToServer(FSPlayerInfo Info);
 
-	//UFUNCTION(BlueprintCallable, Server, Reliable)
-	//void Server_RestartStatValues();
-
 	UFUNCTION()
 	void OnRep_PlayerInfoChanged();
 

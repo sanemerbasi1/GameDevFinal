@@ -23,12 +23,17 @@ ANetBaseAvatar::ANetBaseAvatar()
 void ANetBaseAvatar::BeginPlay()
 {
     Super::BeginPlay();
+    bUsingMainWeapon = true;
 
     Camera->bUsePawnControlRotation = false;
     SpringArm->bUsePawnControlRotation = true;
     bUseControllerRotationYaw = false;
     GetCharacterMovement()->bOrientRotationToMovement = true;
-    EquipWeapon(DefaultWeaponClass);
+
+    if (HasAuthority())
+    {
+        EquipWeapon(DefaultWeaponClass);
+    }
 }
 
 void ANetBaseAvatar::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -44,6 +49,9 @@ void ANetBaseAvatar::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
     PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ANetBaseAvatar::StartSprint);
     PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ANetBaseAvatar::StopSprint);
 
+    PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &ANetBaseAvatar::Attack);
+
+    PlayerInputComponent->BindAction("SwapWeapon", IE_Pressed, this, &ANetBaseAvatar::SwapWeaponInput);
 }
 
 void ANetBaseAvatar::MoveForward(float Scale)
@@ -67,6 +75,7 @@ void ANetBaseAvatar::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
     DOREPLIFETIME(ANetBaseAvatar, bIsSprinting);
+    DOREPLIFETIME(ANetBaseAvatar, EquippedWeapon);
 }
 void ANetBaseAvatar::StartSprint()
 {
@@ -93,9 +102,6 @@ void ANetBaseAvatar::OnRep_IsSprinting()
 {
     GetCharacterMovement()->MaxWalkSpeed = bIsSprinting ? PlayerInfo.CharStats.Stats[(int)ECharStats::Speed] * 700.0f : PlayerInfo.CharStats.Stats[(int)ECharStats::Speed] * 300.0f;
 }
-
-
-//strenght damage arttırıcak, intelligence de magic range arttırıcak.
 
 void ANetBaseAvatar::SetAvatarValues()
 {
@@ -154,7 +160,7 @@ void ANetBaseAvatar::Tick(float DeltaTime)
 
 void ANetBaseAvatar::EquipWeapon(TSubclassOf<AWeapon> WeaponClass)
 {
-    if (!WeaponClass) return; 
+    if (!HasAuthority() || !WeaponClass) return; 
 
     FActorSpawnParameters SpawnParams;
     SpawnParams.Owner = this;
@@ -162,68 +168,27 @@ void ANetBaseAvatar::EquipWeapon(TSubclassOf<AWeapon> WeaponClass)
         
     EquippedWeapon = GetWorld()->SpawnActor<AWeapon>(WeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);    
     
-    if (EquippedWeapon)
-    {
-        EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("hand_rSocket"));
-    }
+    OnRep_EquippedWeapon();
 }
 
 void ANetBaseAvatar::Attack()
 {
-    ServerAttack();
+    if (CurrentStamina >= 20)
+    {
+        ServerAttack();
+    }
 }
 
 void ANetBaseAvatar::ServerAttack_Implementation()
 {
-     if (CurrentStamina >= 20)
-    {
-        if (!EquippedWeapon) return;
+    if (CurrentStamina < 20 || !EquippedWeapon) return;
 
-    FHitResult HitResult;
-    FVector Start = EquippedWeapon->GetActorLocation();
-    FVector End = Start + (GetActorForwardVector() * 200.0f);
-    FCollisionShape Capsule = FCollisionShape::MakeCapsule(20.0f, 60.0f); 
+    float StrengthStat = PlayerInfo.CharStats.Stats[(int)ECharStats::Strenght];
+    EquippedWeapon->Attack(this, GetActorForwardVector(), StrengthStat);
 
-    FCollisionQueryParams QueryParams;
-    QueryParams.AddIgnoredActor(this);
+    CurrentStamina -= 20;
 
-    bool bHit = GetWorld()->SweepSingleByChannel(
-        HitResult, Start, End, FQuat::Identity, 
-        ECC_WorldDynamic, Capsule, QueryParams
-    );
-
-    FVector CenterPoint = (Start + End) * 0.5f;
-    
-    FColor DebugColor = bHit ? FColor::Green : FColor::Red;
-
-    FQuat CapsuleRotation = FRotationMatrix::MakeFromZ(End - Start).ToQuat();
-
-    DrawDebugCapsule(
-        GetWorld(),
-        CenterPoint,
-        60.0f,         
-        20.0f,          
-        CapsuleRotation,
-        DebugColor,
-        false,         
-        2.0f            
-    );
-
-if (bHit && HitResult.GetActor())
-{
-    ANetBaseZombie* HitEnemy = Cast<ANetBaseZombie>(HitResult.GetActor());
-    if (HitEnemy)
-    {
-        HitEnemy->TakingDamage(20 * PlayerInfo.CharStats.Stats[(int)ECharStats::Strenght]); 
-    }
-}
-
-        CurrentStamina -= 20;
-    }
-    else
-    {
-        return;
-    }
+    MulticastPlayAttackVisuals(EquippedWeapon->AttackMontage);
 }
 
 void ANetBaseAvatar::TakingDamage(float Damage)
@@ -238,5 +203,39 @@ void ANetBaseAvatar::TakingDamage(float Damage)
         OnDeath();
     }
     OnHealthChanged(CurrentHealth);
+}
+
+void ANetBaseAvatar::MulticastPlayAttackVisuals_Implementation(UAnimMontage* MontageToPlay)
+{
+    if (MontageToPlay)
+    {
+        PlayAnimMontage(MontageToPlay, 1.0f);
+    }
+}
+
+void ANetBaseAvatar::SwapWeaponInput()
+{
+    ServerSwapWeapon();
+}
+
+void ANetBaseAvatar::ServerSwapWeapon_Implementation()
+{
+    bUsingMainWeapon = !bUsingMainWeapon;
+    TSubclassOf<AWeapon> TargetClass = bUsingMainWeapon ? DefaultWeaponClass : SecondaryWeaponClass;
+
+    if (EquippedWeapon)
+    {
+        EquippedWeapon->Destroy();
+    }
+
+    EquipWeapon(TargetClass);
+}
+
+void ANetBaseAvatar::OnRep_EquippedWeapon()
+{
+    if (EquippedWeapon)
+    {
+        EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("hand_rSocket"));
+    }
 }
 

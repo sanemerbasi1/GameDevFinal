@@ -33,12 +33,6 @@ public:
 	UPROPERTY(EditAnywhere)
 	USpringArmComponent* SpringArm;
 
-	//UPROPERTY(BlueprintReadOnly) 
-	//float MaxHealth;
-
-	//UPROPERTY(BlueprintReadOnly)
-	//float CurrentHealth;
-
 	UPROPERTY(BlueprintReadOnly)
 	float MaxStamina;
 
@@ -62,6 +56,13 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerAttack();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastPlayAttackVisuals(UAnimMontage* MontageToPlay);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    UAnimMontage* AttackMontage;
+
 
 	virtual void Attack() override;
 	virtual void TakingDamage(float Damage) override;
@@ -87,8 +88,21 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void ServerSetSprinting(bool bNewSprinting);
 
-	UPROPERTY()
+	UPROPERTY(ReplicatedUsing=OnRep_EquippedWeapon)
     AWeapon* EquippedWeapon;
+
+	UFUNCTION()
+    void OnRep_EquippedWeapon();
+
+	UPROPERTY(EditAnywhere)
+    TSubclassOf<AWeapon> SecondaryWeaponClass;
+
+    bool bUsingMainWeapon;
+
+    void SwapWeaponInput();
+
+    UFUNCTION(Server, Reliable)
+    void ServerSwapWeapon();
 
 public:
 

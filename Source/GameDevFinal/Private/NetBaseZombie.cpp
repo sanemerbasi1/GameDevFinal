@@ -72,7 +72,7 @@ void ANetBaseZombie::FollowPlayer(ANetBaseCharacter* Player)
 void ANetBaseZombie::Attack()
 {
     FHitResult HitResult;
-    FVector Start = GetActorLocation() + GetActorForwardVector() * 20.0f; // Start a bit in front of the zombie
+    FVector Start = GetActorLocation() + GetActorForwardVector() * 20.0f;
     FVector End = Start + (GetActorForwardVector() * 100.0f);
     FCollisionShape Capsule = FCollisionShape::MakeCapsule(20.0f, 60.0f); 
 
@@ -83,28 +83,6 @@ void ANetBaseZombie::Attack()
         HitResult, Start, End, FQuat::Identity, 
         ECC_WorldDynamic, Capsule, QueryParams
     );
-
-    // --- DRAW DEBUG SHAPE START ---
-    // Calculate the center point of the sweep line to position the debug capsule
-    FVector CenterPoint = (Start + End) * 0.5f;
-    
-    // Choose color: Red if it hit something, Green if it missed
-    FColor DebugColor = bHit ? FColor::Green : FColor::Red;
-
-    // Calculate rotation so the capsule aligns with the direction of the swing
-    FQuat CapsuleRotation = FRotationMatrix::MakeFromZ(End - Start).ToQuat();
-
-    DrawDebugCapsule(
-        GetWorld(),
-        CenterPoint,
-        60.0f,          // Half-Height (Must match your FCollisionShape)
-        20.0f,          // Radius (Must match your FCollisionShape)
-        CapsuleRotation,
-        DebugColor,
-        false,          // bPersistentLines (false means it disappears)
-        2.0f            // Duration in seconds the shape stays on screen
-    );
-    // --- DRAW DEBUG SHAPE END ---
 
 if (bHit && HitResult.GetActor())
 {
