@@ -14,8 +14,14 @@ class ANetGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 	
-	public:
+public:
+
+UPROPERTY(EditAnywhere, BlueprintReadWrite)
+TSubclassOf<class ANetBaseZombie> ZombieClass;
 
 UFUNCTION(BlueprintCallable)
-ANetBaseZombie* SpawnEnemy(TSubclassOf<class ANetBaseZombie> ZombieClass, const FVector& Location, const FRotator& Rotation);
+TArray<AActor*> GetSpawnersByTag(FName TagToFind);
+
+UFUNCTION(BlueprintCallable)
+ANetBaseZombie* SpawnEnemy(TSubclassOf<class ANetBaseZombie> EnemyClass, const FVector& Location, const FRotator& Rotation);
 };

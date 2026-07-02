@@ -43,6 +43,7 @@ void ANetBaseAvatar::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
     PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ANetBaseAvatar::StartSprint);
     PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ANetBaseAvatar::StopSprint);
+
 }
 
 void ANetBaseAvatar::MoveForward(float Scale)
@@ -90,7 +91,7 @@ void ANetBaseAvatar::ServerSetSprinting_Implementation(bool bNewSprinting)
 
 void ANetBaseAvatar::OnRep_IsSprinting()
 {
-    GetCharacterMovement()->MaxWalkSpeed = bIsSprinting ? 1000.0f : 500.0f;
+    GetCharacterMovement()->MaxWalkSpeed = bIsSprinting ? PlayerInfo.CharStats.Stats[(int)ECharStats::Speed] * 700.0f : PlayerInfo.CharStats.Stats[(int)ECharStats::Speed] * 300.0f;
 }
 
 
@@ -100,7 +101,7 @@ void ANetBaseAvatar::SetAvatarValues()
 {
     int HealthIndex = (int)ECharStats::Health;
     int DexterityIndex = (int)ECharStats::Dexterity;
-    int IntelligenceIndex = (int)ECharStats::Intelligence;
+    int SpeedIndex = (int)ECharStats::Speed;
     int StrenghtIndex = (int)ECharStats::Strenght;
 
     if (PlayerInfo.CharStats.Stats.IsValidIndex(HealthIndex))

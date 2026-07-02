@@ -25,7 +25,7 @@
 		Health = 0,
 		Strenght = 1,
 		Dexterity = 2,
-		Intelligence = 3,
+		Speed = 3,
 		COUNT = 4,
 	};
 
